@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import api from './services/api'
 import Login from './pages/Login'
 import Medicos from './pages/Medicos'
 import Horarios from './pages/Horarios'
@@ -16,6 +18,17 @@ function PrivateRoute({ children }) {
 
 function AppContent() {
   const { user, logout } = useAuth()
+
+  // Keep-alive: mantém o backend acordado
+  useEffect(() => {
+    if (!user) return
+    
+    const keepAlive = setInterval(() => {
+      api.get('/medicos').catch(() => {})
+    }, 600000) // 10 minutos
+    
+    return () => clearInterval(keepAlive)
+  }, [user])
 
   if (!user) {
     return (
